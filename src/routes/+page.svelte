@@ -1,4 +1,5 @@
 <script lang="ts">
+    import _ from "lodash";
     export let data;
 
     const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,25 +21,77 @@
      * Translates the input tags to the corresponding translations.
      */
     function handleTranslate(): void {
-        let inputTags: string[] = [];
-        inputTags = input
+        let inputTags: string[] = _.chain(input)
             .replace(/\n/g, " ")
-            .toLowerCase()
+            .toLower()
             .split(" ")
-            .filter((tag: string): string | undefined => tag || undefined);
-        translateTags = inputTags.map((tag: string): Record<string, Record<string, string>> => {
-            let returnTranslate: Record<string, Record<string, string>> = data.tagLists.find(
+            .filter((tag: string): boolean => !!tag)
+            .value();
+        translateTags = _.map(inputTags, (tag: string): Record<string, Record<string, string>> => {
+            if (["隐秘层级", "隐秘实体"].includes(tag)) {
+                return defaultTranslates(tag);
+            }
+
+            if (tag === "隐秘系列") {
+                if (inputTags.includes("层级")) {
+                    tag = "隐秘层级";
+                }
+                if (inputTags.includes("实体")) {
+                    tag = "隐秘实体";
+                }
+            }
+
+            let returnTranslate: Record<string, Record<string, string>> = _.find(
+                _.cloneDeep(data.tagLists),
                 (tagLists: Record<string, Record<string, string>>): boolean =>
-                    Object.values(tagLists).some(
-                        (lang: Record<string, string>): boolean => lang.tag === tag
-                    )
+                    _.some(tagLists, (lang: Record<string, string>): boolean => lang.tag === tag)
             ) ?? defaultTranslates(tag);
 
-            Object.values(returnTranslate)
-                .filter((lang: Record<string, string>): boolean => lang.type === "")
-                .map((emptyTag: Record<string, string>): string => (emptyTag.tag = tag));
+            tagTransform(returnTranslate, "", tag);
+            tagTransform(returnTranslate, "隐秘层级", "隐秘系列");
+
             return returnTranslate;
         });
+
+        /**
+         * Combines two tags into one, and adds the combined tag to the input tags array.
+         * @param firstTag - first tag to combine
+         * @param secondTag - second tag to combine
+         * @param output - combined tag
+         */
+        function multiTagsToOne(firstTag: string, secondTag: string, output: string): void {
+            if (inputTags.includes(firstTag) && inputTags.includes(secondTag)) {
+                inputTags = _.filter(
+                    inputTags,
+                    (tag: string): boolean => tag !== firstTag && tag !== secondTag
+                );
+                inputTags.push(output);
+                return;
+            }
+            if (inputTags.includes(output)) {
+                inputTags = _.filter(inputTags, (tag: string): boolean => tag !== output);
+                inputTags.push(firstTag);
+                inputTags.push(secondTag);
+                return;
+            }
+        }
+
+        /**
+         * Transforms the tags in the given object to the target tag.
+         * @param object - The object to transform the tags in.
+         * @param originTag - The tag to transform.
+         * @param targetTag - The tag to transform to.
+         */
+        function tagTransform(
+            object: Record<string, Record<string, string>>,
+            originTag: string,
+            targetTag: string
+        ): void {
+            _.chain(object)
+                .filter((lang: Record<string, string>): boolean => lang.tag === originTag)
+                .map((tag: Record<string, string>): string => (tag.tag = targetTag))
+                .value();
+        }
     }
 
     /**
@@ -51,6 +104,9 @@
      *             origin: { tag: "foo", type: "" },
      *             en: { tag: "foo", type: "" },
      *             cn: { tag: "foo", type: "" },
+     *             fr: { tag: "foo", type: "" },
+     *             pl: { tag: "foo", type: "" },
+     *             es: { tag: "foo", type: "" },
      *             jp: { tag: "foo", type: "" }
      *         }
      */
@@ -63,11 +119,22 @@
             origin: defaultTags,
             en: defaultTags,
             cn: defaultTags,
+            fr: defaultTags,
+            pl: defaultTags,
+            es: defaultTags,
             jp: defaultTags
         };
     }
 
-    let isShowTexts: Record<string, boolean> = { origin: false, en: false, cn: false, jp: false };
+    let isShowTexts: Record<string, boolean> = {
+        origin: false,
+        en: false,
+        cn: false,
+        fr: false,
+        pl: false,
+        es: false,
+        jp: false
+    };
     let outputTextarea: Record<string, HTMLTextAreaElement> = {};
     /**
      * Toggle the visibility of the output textareas. Not using inline function is because it
@@ -95,7 +162,7 @@
 </div>
 
 <div class="output-wrapper">
-    {#each ["origin", "en", "cn", "jp"] as lang_code, index (lang_code)}
+    {#each ["origin", "en", "cn", "fr", "pl", "es", "jp"] as lang_code (lang_code)}
         <div class="{lang_code} lang-wrap">
             <span class="title">{lang_code.toUpperCase()}</span>
             <div
