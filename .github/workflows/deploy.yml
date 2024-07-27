@@ -19,7 +19,7 @@ jobs:
       - name: 检查
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: master
 
       - name: 构建
         run: |
