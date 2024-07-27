@@ -1,38 +1,30 @@
-# create-svelte
+# Tag Translator
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+A Tag Translator for Wikidot Backrooms Wiki, by hoah2333.
 
-## Creating a project
+## Contributing
 
-If you're seeing this, you've probably already done this step. Congrats!
+After you pulled the project, please install the dependencies first.
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+npm install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+You can preview the output on your computer. This will open a real-time update website on your browser. You can modify the codes, and see the difference when you save the code.
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
 npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
+After that, due to the adapter of `dev` mode is different from `build` mode, you must build and see if there's any error on your code.
 
 ```bash
+# build the translator
 npm run build
+# check the translator on your computer
+npm run preview -- --open
 ```
 
-You can preview the production build with `npm run preview`.
+## License
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Because this project is relied to Wikidot, it is available under the same license as Wikidot, the [GNU Affero General Public License 3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) (AGPL 3.0).
